@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# macOS
+.DS_Store
+
 # Others
 project_requirement.md
