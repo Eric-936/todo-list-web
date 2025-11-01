@@ -16,7 +16,8 @@ Usage:
 
 
 from app.database.database import get_db_health
+from app.models.todo import Todo
 
 if __name__ == "__main__":
     # Example usage of get_db_health function
-    print(get_db_health())
+    print(Todo(title='A'*201).title)

@@ -1,19 +1,108 @@
 """
-SQLAlchemy database model for Todo items.
-
-TODO: Implement Todo database model
-- Create Todo class inheriting from SQLAlchemy Base
-- Define table name and columns:
-  * id: Integer primary key, auto-increment
-  * title: String(200), required, not null
-  * description: Text, optional, max 1000 chars
-  * priority: Enum (LOW, MEDIUM, HIGH), default MEDIUM
-  * due_date: Date, optional
-  * completed: Boolean, default False
-  * created_at: DateTime with timezone, auto-generated
-  * updated_at: DateTime with timezone, auto-updated
-- Create Priority enum class for priority levels
-- Add table constraints and indexes for performance
-- Add __repr__ method for debugging
-- Optional: Add validation methods for business rules
+SQLModel database model for Todo items.
 """
+
+from datetime import datetime, date, timezone, timedelta
+from enum import Enum
+from sqlmodel import SQLModel, Field
+
+# EST timezone (UTC-5)
+EST = timezone(timedelta(hours=-5))
+
+
+def est_now() -> datetime:
+    """Get current time in EST timezone."""
+    return datetime.now(EST)
+
+
+class Priority(str, Enum):
+    """Todo priority levels."""
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+
+class Todo(SQLModel, table=True):
+    """
+    Todo model for database and API.
+    
+    This single class serves as both:
+    - Database table
+    - API schema
+    """
+
+    # Model configuration
+    model_config = {
+        "validate_assignment": True,
+        "validate_default": True,
+        "str_strip_whitespace": True,
+        "use_enum_values": True
+    }
+    
+    # Primary key
+    id: int | None = Field(default=None, primary_key=True)
+    
+    # Required fields
+    title: str = Field(
+        min_length=1, 
+        max_length=200,
+        description="Todo title (1-200 characters)"
+    )
+    
+    # Optional fields
+    description: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Todo description (max 1000 characters)"
+    )
+    
+    priority: Priority = Field(
+        default=Priority.MEDIUM,
+        description="Todo priority level"
+    )
+    
+    due_date: date | None = Field(
+        default=None,
+        description="Due date for the todo"
+    )
+    
+    completed: bool = Field(
+        default=False,
+        description="Whether the todo is completed"
+    )
+    
+    # Auto-managed timestamps
+    created_at: datetime = Field(
+        default_factory=est_now,
+        description="When the todo was created"
+    )
+    
+    updated_at: datetime = Field(
+        default_factory=est_now,
+        description="When the todo was last updated"
+    )
+    
+    def __init__(self, **data):
+        """For title requirement"""
+        if 'title' not in data:
+            raise ValueError("title field is required")
+        super().__init__(**data)
+    
+    def __repr__(self) -> str:
+        """String representation for debugging."""
+        status = "✅" if self.completed else "⏳"
+        return f"<Todo {self.id}: {status} [{self.priority}] {self.title}>"
+    
+    def mark_completed(self) -> None:
+        """Mark todo as completed and update timestamp."""
+        self.completed = True
+        self.updated_at = est_now()
+    
+    def mark_incomplete(self) -> None:
+        """Mark todo as incomplete and update timestamp."""
+        self.completed = False
+        self.updated_at = est_now()
+    
+    def update_timestamp(self) -> None:
+        """Update the updated_at timestamp."""
+        self.updated_at = est_now()
