@@ -1,22 +1,65 @@
 """
-Database configuration and session management.
-
-TODO: Implement database setup and connection management
-- Import SQLAlchemy components (create_engine, sessionmaker, declarative_base)
-- Import database URL from config.py
-- Create SQLAlchemy engine with proper SQLite configuration:
-  * Enable foreign key constraints
-  * Set connection pool settings
-  * Configure echo for development debugging
-- Create SessionLocal for database sessions
-- Create Base class for model inheritance
-- Implement get_db() dependency function for FastAPI:
-  * Create session, yield it, then close
-  * Handle exceptions and rollbacks
-- Implement init_db() function:
-  * Create all tables if they don't exist
-  * Optional: Add sample data for development
-- Add database health check function
-- Optional: Add database migration utilities
-- Optional: Add connection retry logic for production
+Database configuration and session management using SQLModel.
 """
+
+from typing import Generator
+from sqlmodel import SQLModel, create_engine, Session
+from app.config import settings
+
+
+# Create SQLite engine with proper configuration
+engine = create_engine(
+    settings.database_url,
+    echo=settings.log_level.upper() == "DEBUG",  # Echo SQL queries in debug mode
+    connect_args={"check_same_thread": False}    # Required for SQLite
+)
+
+
+def create_db_and_tables():
+    """Create database tables if they don't exist."""
+    SQLModel.metadata.create_all(engine)
+
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    FastAPI dependency that provides database session.
+    
+    Yields:
+        Session: SQLModel database session
+    """
+    with Session(engine) as session:
+        yield session
+
+
+def get_db_health() -> bool:
+    """
+    Check database health/connectivity.
+    
+    Returns:
+        bool: True if database is accessible, False otherwise
+    """
+    try:
+        with Session(engine) as session:
+            # Simple query to test connection
+            session.exec("SELECT 1").one()
+            return True
+    except Exception:
+        return False
+
+
+def init_db():
+    """
+    Initialize database on application startup.
+    Creates tables and optionally adds sample data.
+    """
+    create_db_and_tables()
+    
+    # Optional: Add sample data for development
+    if settings.log_level.upper() == "DEBUG":
+        _create_sample_data()
+
+
+def _create_sample_data():
+    """Create sample data for development (optional)."""
+    # Will implement this after creating Todo model
+    pass

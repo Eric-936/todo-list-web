@@ -4,36 +4,39 @@ Uses Pydantic BaseSettings for environment variable management.
 """
 
 import os
-# from typing import Optional
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application configuration settings."""
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
+    
     # Application settings
     app_name: str = "Todo List Mini Web"
-    # debug: bool = Field(default=False, env="DEBUG")
-    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    log_level: str = "INFO"
     
     # Database settings
     database_url: str = Field(
         default="sqlite:///./todos.db",
-        env="DATABASE_URL",
         description="SQLite database file path"
     )
     
     # Redis settings
-    redis_host: str = Field(default="localhost", env="REDIS_HOST")
-    redis_port: int = Field(default=6379, env="REDIS_PORT")
-    redis_password: str | None = Field(default=None, env="REDIS_PASSWORD")
-    redis_db: int = Field(default=0, env="REDIS_DB")
-    redis_url: str | None = Field(default=None, env="REDIS_URL")
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: str | None = None
+    redis_db: int = 0
+    redis_url: str | None = None
     
     # Cache settings
     cache_ttl: int = Field(
         default=30,
-        env="CACHE_TTL",
         description="Cache TTL in seconds"
     )
     
@@ -47,11 +50,6 @@ class Settings(BaseSettings):
     # # Pagination defaults
     # default_page_size: int = Field(default=20, env="DEFAULT_PAGE_SIZE")
     # max_page_size: int = Field(default=100, env="MAX_PAGE_SIZE")
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
 
     @property
     def redis_connection_url(self) -> str:

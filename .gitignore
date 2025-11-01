@@ -12,5 +12,8 @@ wheels/
 # macOS
 .DS_Store
 
+# vscode
+.vscode/
+
 # Others
 project_requirement.md
