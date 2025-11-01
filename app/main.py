@@ -15,11 +15,3 @@ TODO: Implement main application setup
 - Optional: Add authentication middleware if API key is configured
 - Optional: Add request/response logging middleware
 """
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def hello_world():
-    return {"message": "Hello World"}

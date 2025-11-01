@@ -3,7 +3,7 @@ Database configuration and session management using SQLModel.
 """
 
 from typing import Generator
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel, create_engine, Session, text
 from app.config import settings
 
 
@@ -40,8 +40,8 @@ def get_db_health() -> bool:
     """
     try:
         with Session(engine) as session:
-            # Simple query to test connection
-            session.exec("SELECT 1").one()
+            # Simple query to test connection - use text() for raw SQL
+            session.exec(text("SELECT 1")).one()
             return True
     except Exception:
         return False

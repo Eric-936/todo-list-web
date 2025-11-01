@@ -13,3 +13,10 @@ Usage:
   or
   uvicorn main:app --reload (for development)
 """
+
+
+from app.database.database import get_db_health
+
+if __name__ == "__main__":
+    # Example usage of get_db_health function
+    print(get_db_health())
