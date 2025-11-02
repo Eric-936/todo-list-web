@@ -17,7 +17,8 @@ Usage:
 
 from app.database.database import get_db_health
 from app.models.todo import Todo
+from app.services.cache_service import CacheService
 
 if __name__ == "__main__":
     # Example usage of get_db_health function
-    print(Todo(title='A'*201).title)
+    print(CacheService().health_check())
