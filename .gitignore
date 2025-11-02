@@ -1,16 +1,12 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+.pytest_cache/
 
 # Virtual environments
 .venv
 
 # Others
+.python-version
 project_requirement.md
 .vscode/
-.DS_Store
-.pytest_cache/
+uv.lock
