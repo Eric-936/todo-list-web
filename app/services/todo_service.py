@@ -2,13 +2,13 @@
 Business logic service for Todo operations.
 """
 
-from datetime import date, datetime
-from typing import List, Optional, Dict, Any
-from sqlmodel import Session, select, func, or_
-from fastapi import HTTPException, status
+from datetime import date
+from typing import Any, Dict, List, Optional
 
-from app.models.todo import Todo, Priority
-from app.database.database import get_db
+from fastapi import HTTPException, status
+from sqlmodel import Session, func, or_, select
+
+from app.models.todo import Priority, Todo
 
 
 class TodoFilters:

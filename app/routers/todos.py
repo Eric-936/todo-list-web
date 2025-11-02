@@ -1,25 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
-from sqlmodel import Session
-from typing import Optional, Dict, Any, Generator
-from datetime import datetime, date
+"""
+Todo List API Routers
+"""
+
 import logging
+from datetime import date, datetime
+from typing import Any, Dict, Generator, Optional
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
+from sqlmodel import Session
 
-# Dependencies
 from app.database.database import engine
-from app.services.cache_service import CacheService, cache_service
-from app.services.todo_service import TodoService, TodoFilters
-
-from app.schemas.todo import (
-    TodoCreate,
-    TodoUpdate,
-    TodoResponse,
-    TodoListResponse,
-    PaginationMeta,
-    TodoStatsResponse,
-    HealthCheckResponse,
-)
 from app.models.todo import Priority
+from app.services.cache_service import CacheService, cache_service
+from app.services.todo_service import TodoFilters, TodoService
+from app.schemas.todo import (
+    HealthCheckResponse,
+    PaginationMeta,
+    TodoCreate,
+    TodoListResponse,
+    TodoResponse,
+    TodoStatsResponse,
+    TodoUpdate,
+)
 
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -37,10 +41,13 @@ def get_cache() -> CacheService:
 
 # Router
 router = APIRouter(
-    prefix="/todos", tags=["todos"], responses={404: {"description": "Todo not found"}}
+    prefix="/todos",
+    tags=["todos"],
+    responses={404: {"description": "Todo not found"}},
 )
 
 
+# Get Todo list with filtering, searching, sorting, and pagination.
 @router.get("/", response_model=TodoListResponse, summary="Get Todo List")
 async def get_todos(
     # Filter parameters
@@ -230,6 +237,7 @@ async def health_check(
 ):
     """System health check for monitoring."""
     import time
+
     from app.database.database import get_db_health
 
     try:
@@ -434,7 +442,9 @@ async def delete_todo(
 
 
 @router.post(
-    "/{todo_id}/complete", response_model=TodoResponse, summary="Mark Todo as Complete"
+    "/{todo_id}/complete",
+    response_model=TodoResponse,
+    summary="Mark Todo as Complete",
 )
 async def mark_todo_complete(
     todo_id: int = Path(..., gt=0, description="Todo ID, must be greater than 0"),

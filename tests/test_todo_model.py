@@ -2,14 +2,15 @@
 Comprehensive tests for Todo model.
 """
 
-import pytest
 import time
-from datetime import datetime, date, timezone, timedelta
+from datetime import date, timedelta
+
+import pytest
 from pydantic import ValidationError
 from sqlmodel import Session, select
-from app.models.todo import Todo, Priority, EST, est_now
-from app.database.database import engine, create_db_and_tables
 
+from app.database.database import create_db_and_tables, engine
+from app.models.todo import EST, Priority, Todo, est_now
 
 # Basic Model Creation Tests
 

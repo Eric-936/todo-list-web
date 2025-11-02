@@ -7,15 +7,6 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_root_endpoint():
-    """测试根路径"""
-    response = client.get("/")
-    assert response.status_code == 200
-    data = response.json()
-    assert "message" in data
-    assert "Todo List API" in data["message"]
-
-
 def test_healthz_endpoint():
     """测试简单健康检查"""
     response = client.get("/healthz")

@@ -1,11 +1,10 @@
-from typing import Optional, Dict, Any, List
 import hashlib
 import json
 import logging
-from datetime import timedelta
-import asyncio
+from typing import Any, Dict, Optional
 
 import redis.asyncio as redis
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)

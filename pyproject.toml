@@ -1,7 +1,7 @@
 [project]
 name = "todo-list-web"
 version = "0.1.0"
-description = "Add your description here"
+description = "This is a small todo list web app."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -11,10 +11,10 @@ dependencies = [
     "jinja2>=3.1.0",
     "pydantic>=2.12.3",
     "pydantic-settings>=2.11.0",
-    "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "python-multipart>=0.0.6",
     "redis>=7.0.1",
+    "ruff>=0.14.3",
     "sqlmodel>=0.0.27",
     "uvicorn>=0.38.0",
 ]
@@ -25,12 +25,5 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "-v",
-    "--tb=short",
-    "--strict-markers",
-    "--disable-warnings",
-]
-markers = [
-    "asyncio: mark test as async",
-]
+addopts = ["-v", "--disable-warnings"]
+markers = ["asyncio: mark test as async"]

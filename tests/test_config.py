@@ -3,8 +3,10 @@ Tests for configuration settings.
 """
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from app.config import Settings
 
 

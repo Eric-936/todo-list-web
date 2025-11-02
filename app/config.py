@@ -3,7 +3,6 @@ Configuration settings for the Todo List API application.
 Uses Pydantic BaseSettings for environment variable management.
 """
 
-import os
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

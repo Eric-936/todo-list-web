@@ -2,9 +2,10 @@
 SQLModel database model for Todo items.
 """
 
-from datetime import datetime, date, timezone, timedelta
+from datetime import date, datetime, timedelta, timezone
 from enum import Enum
-from sqlmodel import SQLModel, Field
+
+from sqlmodel import Field, SQLModel
 
 # EST timezone (UTC-5)
 EST = timezone(timedelta(hours=-5))

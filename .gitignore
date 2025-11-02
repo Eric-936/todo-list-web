@@ -1,6 +1,7 @@
-# Python-generated files
+# Cache files
 __pycache__/
 .pytest_cache/
+.ruff_cache
 
 # Virtual environments
 .venv
@@ -11,3 +12,4 @@ project_requirement.md
 .vscode/
 uv.lock
 。DS_Store
+Check_List.txt

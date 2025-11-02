@@ -2,10 +2,10 @@
 Database tests - Step by step implementation.
 """
 
-import pytest
 import os
-from app.database.database import engine, get_db_health
+
 from app.config import settings
+from app.database.database import engine, get_db_health
 
 # Fundation tests for database configuration
 

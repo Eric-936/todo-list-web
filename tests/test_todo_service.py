@@ -2,15 +2,16 @@
 Pytest tests for TodoService business logic.
 """
 
-import pytest
 import time
 from datetime import date, timedelta
-from sqlmodel import Session, text
-from fastapi import HTTPException
 
-from app.models.todo import Todo, Priority
-from app.services.todo_service import TodoService, TodoFilters, PaginationResult
-from app.database.database import engine, create_db_and_tables
+import pytest
+from fastapi import HTTPException
+from sqlmodel import Session, text
+
+from app.database.database import create_db_and_tables, engine
+from app.models.todo import Priority
+from app.services.todo_service import PaginationResult, TodoFilters, TodoService
 
 
 @pytest.fixture

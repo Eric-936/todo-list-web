@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.config import settings
@@ -26,10 +25,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application lifespan context manager.
+    API app lifespan context manager.
     Handles startup and shutdown events.
     """
-    # Startup
+    # Log startup
     logger.info("Starting Todo List API...")
 
     # Initialize database
@@ -53,20 +52,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     description="A simple Todo List API with caching support",
-    version="1.0.0",
+    version="0.1.0",
     lifespan=lifespan,
 )
 
-# Add static files support
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
 
-# Add CORS middleware
+
+# Allow CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -103,20 +101,20 @@ async def web_interface(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-# API root endpoint
-@app.get("/api", tags=["root"])
-async def api_root():
-    """API root endpoint."""
-    return {
-        "message": "Welcome to Todo List API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/api/todos/health",
-    }
+# # API root endpoint
+# @app.get("/api", tags=["root"])
+# async def api_root():
+#     """API root endpoint."""
+#     return {
+#         "message": "Welcome to Todo List API",
+#         "version": "1.0.0",
+#         "docs": "/docs",
+#         "health": "/api/todos/health",
+#     }
 
 
-# Simple health check endpoint at root level
-@app.get("/healthz", tags=["health"])
-async def healthz():
-    """Simple health check endpoint."""
-    return {"status": "ok", "service": "todo-list-api"}
+# # Simple health check endpoint at root level
+# @app.get("/healthz", tags=["health"])
+# async def healthz():
+#     """Simple health check endpoint."""
+#     return {"status": "ok", "service": "todo-list-api"}

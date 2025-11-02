@@ -3,9 +3,9 @@ Pydantic schemas for Todo API request/response validation.
 """
 
 from datetime import date, datetime
-from typing import Optional, List, Any
+from typing import Any, List, Optional
+
 from pydantic import BaseModel, Field, validator
-from enum import Enum
 
 from app.models.todo import Priority
 
