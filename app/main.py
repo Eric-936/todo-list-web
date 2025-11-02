@@ -18,7 +18,7 @@ from app.routers import todos
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting Todo List API...")
-    
+
     # Initialize database
     try:
         init_db()
@@ -39,12 +39,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
-    
+
     # Application is ready
     logger.info("Todo List API startup complete")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down Todo List API...")
 
@@ -54,7 +54,7 @@ app = FastAPI(
     title=settings.app_name,
     description="A simple Todo List API with caching support",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add static files support
@@ -79,7 +79,7 @@ async def http_exception_handler(request, exc):
     """Global HTTP exception handler."""
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail, "status_code": exc.status_code}
+        content={"detail": exc.detail, "status_code": exc.status_code},
     )
 
 
@@ -88,8 +88,7 @@ async def general_exception_handler(request, exc):
     """Global exception handler for unhandled exceptions."""
     logger.error(f"Unhandled exception: {str(exc)}")
     return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "status_code": 500}
+        status_code=500, content={"detail": "Internal server error", "status_code": 500}
     )
 
 
@@ -112,7 +111,7 @@ async def api_root():
         "message": "Welcome to Todo List API",
         "version": "1.0.0",
         "docs": "/docs",
-        "health": "/api/todos/health"
+        "health": "/api/todos/health",
     }
 
 

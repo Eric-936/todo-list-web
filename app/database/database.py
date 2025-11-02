@@ -11,7 +11,7 @@ from app.config import settings
 engine = create_engine(
     settings.database_url,
     echo=settings.log_level.upper() == "DEBUG",  # Echo SQL queries in debug mode
-    connect_args={"check_same_thread": False}    # Required for SQLite
+    connect_args={"check_same_thread": False},  # Required for SQLite
 )
 
 
@@ -23,7 +23,7 @@ def create_db_and_tables():
 def get_db() -> Generator[Session, None, None]:
     """
     FastAPI dependency that provides database session.
-    
+
     Yields:
         Session: SQLModel database session
     """
@@ -34,7 +34,7 @@ def get_db() -> Generator[Session, None, None]:
 def get_db_health() -> bool:
     """
     Check database health/connectivity.
-    
+
     Returns:
         bool: True if database is accessible, False otherwise
     """
@@ -53,7 +53,7 @@ def init_db():
     Creates tables and optionally adds sample data.
     """
     create_db_and_tables()
-    
+
     # Optional: Add sample data for development
     if settings.log_level.upper() == "DEBUG":
         _create_sample_data()
