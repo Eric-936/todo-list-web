@@ -421,7 +421,7 @@ async def delete_todo(
         )
 
 
-@router.patch("/{todo_id}/complete", response_model=TodoResponse, summary="Mark Todo as Complete")
+@router.post("/{todo_id}/complete", response_model=TodoResponse, summary="Mark Todo as Complete")
 async def mark_todo_complete(
     todo_id: int = Path(..., gt=0, description="Todo ID, must be greater than 0"),
     db: Session = Depends(get_db),
@@ -450,7 +450,7 @@ async def mark_todo_complete(
         )
 
 
-@router.patch("/{todo_id}/incomplete", response_model=TodoResponse, summary="Mark Todo as Incomplete")
+@router.post("/{todo_id}/incomplete", response_model=TodoResponse, summary="Mark Todo as Incomplete")
 async def mark_todo_incomplete(
     todo_id: int = Path(..., gt=0, description="Todo ID, must be greater than 0"),
     db: Session = Depends(get_db),

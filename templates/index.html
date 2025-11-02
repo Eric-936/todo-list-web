@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List - 待办事项</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .add-todo {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757 0%, #ff3838 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #2ed573 0%, #1abc9c 100%);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.4);
+        }
+
+        .todo-list {
+            margin-top: 20px;
+        }
+
+        .todo-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .todo-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .todo-item.completed {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
+
+        .todo-item.completed .todo-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .todo-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .todo-description {
+            color: #6c757d;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .todo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #8e9aaf;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .priority-high {
+            background: #ffe8e8;
+            color: #e74c3c;
+        }
+
+        .priority-medium {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .priority-low {
+            background: #d4edda;
+            color: #27ae60;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .todo-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Todo List</h1>
+            <p>管理你的待办事项，提高工作效率</p>
+        </div>
+        
+        <div class="content">
+            <!-- 统计信息 -->
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-count">0</div>
+                    <div class="stat-label">总计</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-count">0</div>
+                    <div class="stat-label">待完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completed-count">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+            </div>
+
+            <!-- 添加新待办事项 -->
+            <div class="add-todo">
+                <h3 style="margin-bottom: 20px; color: #495057;">✨ 添加新待办事项</h3>
+                <form id="add-todo-form">
+                    <div class="form-group">
+                        <label for="title">标题 *</label>
+                        <input type="text" id="title" class="form-control" placeholder="输入待办事项标题..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea id="description" class="form-control" rows="3" placeholder="添加详细描述..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">优先级</label>
+                        <select id="priority" class="form-control">
+                            <option value="LOW">低</option>
+                            <option value="MEDIUM" selected>中</option>
+                            <option value="HIGH">高</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">🚀 添加待办事项</button>
+                </form>
+            </div>
+
+            <!-- 待办事项列表 -->
+            <div class="todo-list">
+                <div id="loading" class="loading">
+                    <p>⏳ 加载中...</p>
+                </div>
+                <div id="todos-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        // 加载统计信息
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/todos/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('total-count').textContent = stats.total;
+                document.getElementById('pending-count').textContent = stats.pending;
+                document.getElementById('completed-count').textContent = stats.completed;
+            } catch (error) {
+                console.error('加载统计信息失败:', error);
+            }
+        }
+
+        // 加载待办事项列表
+        async function loadTodos() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/todos/`);
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                displayTodos(data.items);
+            } catch (error) {
+                console.error('加载待办事项失败:', error);
+                document.getElementById('loading').innerHTML = '<p>❌ 加载失败</p>';
+            }
+        }
+
+        // 显示待办事项
+        function displayTodos(todos) {
+            const container = document.getElementById('todos-container');
+            
+            if (todos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🎉 暂无待办事项</h3>
+                        <p>添加第一个待办事项开始吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = todos.map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <div class="todo-title">${escapeHtml(todo.title)}</div>
+                    ${todo.description ? `<div class="todo-description">${escapeHtml(todo.description)}</div>` : ''}
+                    <div class="todo-meta">
+                        <div>
+                            <span class="priority priority-${todo.priority.toLowerCase()}">${getPriorityText(todo.priority)}</span>
+                            <span style="margin-left: 10px;">${formatDate(todo.created_at)}</span>
+                        </div>
+                        <div class="todo-actions">
+                            <button class="btn btn-success" onclick="toggleComplete(${todo.id}, ${!todo.completed})">
+                                ${todo.completed ? '↩️ 未完成' : '✅ 完成'}
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteTodo(${todo.id})">🗑️ 删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 添加待办事项
+        async function addTodo(todoData) {
+            try {
+                const response = await fetch(`${API_BASE}/todos/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(todoData)
+                });
+
+                if (response.ok) {
+                    // 重新加载数据
+                    await loadTodos();
+                    await loadStats();
+                    
+                    // 清空表单
+                    document.getElementById('add-todo-form').reset();
+                } else {
+                    alert('添加失败，请重试');
+                }
+            } catch (error) {
+                console.error('添加待办事项失败:', error);
+                alert('添加失败，请重试');
+            }
+        }
+
+        // 切换完成状态
+        async function toggleComplete(id, completed) {
+            try {
+                const endpoint = completed ? 'complete' : 'incomplete';
+                const response = await fetch(`${API_BASE}/todos/${id}/${endpoint}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    await loadTodos();
+                    await loadStats();
+                } else {
+                    alert('操作失败，请重试');
+                }
+            } catch (error) {
+                console.error('切换状态失败:', error);
+                alert('操作失败，请重试');
+            }
+        }
+
+        // 删除待办事项
+        async function deleteTodo(id) {
+            if (!confirm('确定要删除这个待办事项吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/todos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadTodos();
+                    await loadStats();
+                } else {
+                    alert('删除失败，请重试');
+                }
+            } catch (error) {
+                console.error('删除待办事项失败:', error);
+                alert('删除失败，请重试');
+            }
+        }
+
+        // 工具函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getPriorityText(priority) {
+            const map = { 'HIGH': '高', 'MEDIUM': '中', 'LOW': '低' };
+            return map[priority] || priority;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 事件监听
+        document.getElementById('add-todo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const todoData = {
+                title: document.getElementById('title').value.trim(),
+                description: document.getElementById('description').value.trim() || null,
+                priority: document.getElementById('priority').value
+            };
+
+            if (!todoData.title) {
+                alert('请输入待办事项标题');
+                return;
+            }
+
+            await addTodo(todoData);
+        });
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadTodos();
+        });
+    </script>
+</body>
+</html>

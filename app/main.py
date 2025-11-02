@@ -4,9 +4,11 @@ Main FastAPI application entry point.
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.config import settings
 from app.database.database import init_db
@@ -55,6 +57,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add static files support
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup templates
+templates = Jinja2Templates(directory="templates")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -89,10 +97,17 @@ async def general_exception_handler(request, exc):
 app.include_router(todos.router, prefix="/api")
 
 
-# Root endpoint
-@app.get("/", tags=["root"])
-async def root():
-    """Root endpoint."""
+# Web interface endpoint
+@app.get("/", tags=["web"])
+async def web_interface(request: Request):
+    """Serve the web interface."""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+# API root endpoint
+@app.get("/api", tags=["root"])
+async def api_root():
+    """API root endpoint."""
     return {
         "message": "Welcome to Todo List API",
         "version": "1.0.0",
