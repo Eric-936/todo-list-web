@@ -223,101 +223,100 @@ class TestTodoSpecificMethods:
             )
 
 
-# class TestCacheInvalidation:
-#     """Test cache invalidation methods."""
+class TestCacheInvalidation:
+    """Test cache invalidation methods."""
 
-#     @pytest.fixture
-#     def cache_service(self):
-#         return CacheService()
+    @pytest.fixture
+    def cache_service(self):
+        return CacheService()
 
-#     @pytest.fixture
-#     def mock_redis_client(self):
-#         mock_client = AsyncMock()
-#         mock_client.ping.return_value = True
-#         return mock_client
+    @pytest.fixture
+    def mock_redis_client(self):
+        mock_client = AsyncMock()
+        mock_client.ping.return_value = True
+        return mock_client
 
-#     @pytest.mark.asyncio
-#     async def test_invalidate_todo(self, cache_service, mock_redis_client):
-#         """Test invalidating specific todo cache."""
-#         # Arrange
-#         mock_redis_client.delete.return_value = 1
+    @pytest.mark.asyncio
+    async def test_invalidate_todo(self, cache_service, mock_redis_client):
+        """Test invalidating specific todo cache."""
+        # Arrange
+        mock_redis_client.delete.return_value = 1
 
-#         # Create async iterator for empty list
-#         async def empty_async_iter():
-#             return
-#             yield  # This will never execute but makes it a generator
+        # Create async iterator for empty list
+        async def empty_async_iter():
+            return
+            yield  # This will never execute but makes it a generator
 
-#         mock_redis_client.scan_iter.return_value = empty_async_iter()
+        mock_redis_client.scan_iter.return_value = empty_async_iter()
 
-#         with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
-#             # Act
-#             result = await cache_service.invalidate_todo(123)
+        with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
+            # Act
+            result = await cache_service.invalidate_todo(123)
 
-#             # Assert
-#             assert result is True
-#             # Should delete the specific todo
-#             assert mock_redis_client.delete.call_count >= 1
-#             # Should also call invalidate_all_lists (which scans for list patterns)
-#             mock_redis_client.scan_iter.assert_called_with(match="todos:list:*")
+            # Assert
+            assert result is True
+            # Should delete the specific todo
+            assert mock_redis_client.delete.call_count >= 1
+            # Should also call invalidate_all_lists (which scans for list patterns)
+            mock_redis_client.scan_iter.assert_called_with(match="todos:list:*", count=100)
 
-#     @pytest.mark.asyncio
-#     async def test_invalidate_all_lists(self, cache_service, mock_redis_client):
-#         """Test invalidating all list caches."""
-#         # Arrange
-#         list_keys = ["todos:list:abc", "todos:list:def"]
+    @pytest.mark.asyncio
+    async def test_invalidate_all_lists(self, cache_service, mock_redis_client):
+        """Test invalidating all list caches."""
+        # Arrange
+        list_keys = ["todos:list:abc", "todos:list:def"]
 
-#         # Create async iterator
-#         async def async_list_keys():
-#             for key in list_keys:
-#                 yield key
+        # Create async iterator function that can be called
+        async def async_list_keys(**kwargs):
+            for key in list_keys:
+                yield key
 
-#         mock_redis_client.scan_iter.return_value = async_list_keys()
-#         mock_redis_client.delete.return_value = len(list_keys)
+        mock_redis_client.scan_iter = async_list_keys
+        mock_redis_client.delete.return_value = len(list_keys)
 
-#         with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
-#             # Act
-#             result = await cache_service.invalidate_all_lists()
+        with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
+            # Act
+            result = await cache_service.invalidate_all_lists()
 
-#             # Assert
-#             assert result == 2
-#             mock_redis_client.scan_iter.assert_called_once_with(match="todos:list:*")
-#             mock_redis_client.delete.assert_called_once_with(*list_keys)
+            # Assert
+            assert result == 2
+            mock_redis_client.delete.assert_called_once_with(*list_keys)
 
-#     @pytest.mark.asyncio
-#     async def test_invalidate_all(self, cache_service, mock_redis_client):
-#         """Test invalidating all todo-related caches."""
-#         # Arrange
-#         todo_keys = ["todo:1", "todo:2"]
-#         list_keys = ["todos:list:abc"]
+    @pytest.mark.asyncio
+    async def test_invalidate_all(self, cache_service, mock_redis_client):
+        """Test invalidating all todo-related caches."""
+        # Arrange
+        todo_keys = ["todo:1", "todo:2"]
+        list_keys = ["todos:list:abc"]
 
-#         # Mock scan_iter to return different results for different patterns
-#         def mock_scan_iter(match):
-#             if match == "todo:*":
-#                 async def todo_keys_iter():
-#                     for key in todo_keys:
-#                         yield key
-#                 return todo_keys_iter()
-#             elif match == "todos:list:*":
-#                 async def list_keys_iter():
-#                     for key in list_keys:
-#                         yield key
-#                 return list_keys_iter()
-#             else:
-#                 async def empty_iter():
-#                     return
-#                     yield
-#                 return empty_iter()
+        # Mock scan_iter to return different results for different patterns
+        def mock_scan_iter(match=None, **kwargs):
+            if match == "todo:*":
+                async def todo_keys_iter():
+                    for key in todo_keys:
+                        yield key
+                return todo_keys_iter()
+            elif match == "todos:list:*":
+                async def list_keys_iter():
+                    for key in list_keys:
+                        yield key
+                return list_keys_iter()
+            else:
+                async def empty_iter():
+                    return
+                    yield
+                return empty_iter()
 
-#         mock_redis_client.scan_iter.side_effect = mock_scan_iter
-#         mock_redis_client.delete.side_effect = [len(todo_keys), len(list_keys)]
+        mock_redis_client.scan_iter = mock_scan_iter
+        mock_redis_client.delete.side_effect = [len(todo_keys), len(list_keys)]
 
-#         with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
-#             # Act
-#             result = await cache_service.invalidate_all()
+        with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
+            # Act
+            result = await cache_service.invalidate_all()
 
-#             # Assert
-#             assert result == 3  # 2 todo keys + 1 list key
-#             assert mock_redis_client.delete.call_count == 2
+            # Assert
+            assert result == 3  # 2 todo keys + 1 list key
+            assert mock_redis_client.delete.call_count == 2
 
 
 class TestKeyGeneration:
