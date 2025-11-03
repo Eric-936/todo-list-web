@@ -10,7 +10,7 @@ A small API-first to-do list web app with a minimal UI, built on FastAPI, persis
 
 ## Quick Start
 
-Prereqs: Python 3.10+. Redis is optional for local dev (if not running, the app gracefully degrades and just misses cache).
+Prereqs: Python 3.10+. Redis is optional.
 
 1) Install dependencies (pick one)
 
@@ -50,6 +50,20 @@ uvicorn app.main:app --reload
 - Web UI: http://127.0.0.1:8000/
 - API docs (Swagger): http://127.0.0.1:8000/docs
 
+## Testing
+
+Run the full test suite:
+
+```bash
+pytest -q
+```
+
+
+Important notes:
+
+- Database: tests use SQLite and will create/modify/delete rows. Integration tests clean up after each test, but your existing `todos.db` may be affected when running the suite.
+- Redis is not required for tests. Cache tests mock Redis
+
 ## API Overview
 
 Base path: `/api`
@@ -65,8 +79,25 @@ Requests and responses are validated/transformed with Pydantic.
 
 ## Caching Design (Redis)
 
-- Invalidation: any create/update/delete clears the corresponding `todo:{id}` and all `todos:list:*`; stats key `todos:stats` is also cleared on data changes
-- Graceful degradation: if Redis is unavailable, the app falls back to DB reads with logs (no crashes)
+What we cache and how it works (simple overview):
+
+- What is cached
+	- Single item: GET `/api/todos/{id}`
+	- Lists: GET `/api/todos` with filters/search + pagination
+	- Stats: GET `/api/todos/stats`
+
+- TTL
+	- Default 30 seconds (configurable via `CACHE_TTL`)
+
+- Cache flow
+	- GET: check Redis first → hit returns cached payload; miss queries DB and then sets cache
+	- WRITE (create/update/delete):
+		- delete `todo:{id}` for the affected item (if applicable)
+		- delete all `todos:list:*` (list caches) to keep lists consistent
+		- delete `todos:stats` so stats are recalculated next time
+
+- Failure handling
+	- If Redis is unavailable, the app logs the error and proceeds with DB reads (no request fails due to cache)
 
 <!-- Redis startup instructions are covered in Quick Start (Homebrew only) -->
 
