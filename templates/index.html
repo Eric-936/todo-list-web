@@ -259,6 +259,68 @@
                 flex-direction: column;
             }
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: none;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            margin: 0;
+            color: #495057;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
     </style>
 </head>
 
@@ -307,6 +369,10 @@
                             <option value="HIGH">High</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="due_date">Due Date</label>
+                        <input type="date" id="due_date" class="form-control">
+                    </div>
                     <button type="submit" class="btn">🚀 Add Todo</button>
                 </form>
             </div>
@@ -317,6 +383,65 @@
                     <p>⏳ Loading...</p>
                 </div>
                 <div id="todos-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Todo Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Edit Todo</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="edit-todo-form">
+                <input type="hidden" id="edit-todo-id">
+                <div class="form-group">
+                    <label for="edit-title">Title *</label>
+                    <input type="text" id="edit-title" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-priority">Priority</label>
+                    <select id="edit-priority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-due-date">Due Date</label>
+                    <input type="date" id="edit-due-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="edit-completed"> Completed
+                    </label>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn">💾 Update Todo</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Todo Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 Todo Details</h3>
+                <span class="close" onclick="closeDetailModal()">&times;</span>
+            </div>
+            <div id="todo-detail-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="button" class="btn" onclick="editFromDetail()">✏️ Edit</button>
+                <button type="button" class="btn-secondary" onclick="closeDetailModal()">Close</button>
             </div>
         </div>
     </div>
@@ -369,18 +494,20 @@
 
             container.innerHTML = todos.map(todo => `
                 <div class="todo-item ${todo.completed ? 'completed' : ''}">
-                    <div class="todo-title">${escapeHtml(todo.title)}</div>
+                    <div class="todo-title" style="cursor: pointer;" onclick="viewTodoDetail(${todo.id})">${escapeHtml(todo.title)}</div>
                     ${todo.description ? `<div class="todo-description">${escapeHtml(todo.description)}</div>` : ''}
                     <div class="todo-meta">
                         <div>
                             <span class="priority priority-${todo.priority.toLowerCase()}">${getPriorityText(todo.priority)}</span>
                             <span style="margin-left: 10px;">${formatDate(todo.created_at)}</span>
+                            ${todo.due_date ? `<span style="margin-left: 10px;">📅 Due: ${formatDateOnly(todo.due_date)}</span>` : ''}
                         </div>
                         <div class="todo-actions">
                             <button class="btn btn-success" onclick="toggleComplete(${todo.id}, ${!todo.completed})">
                                 ${todo.completed ? '↩️ Incomplete' : '✅ Complete'}
                             </button>
-                            <button class="btn btn-danger" onclick="deleteTodo(${todo.id})">🗑️ Delete</button>
+                            <button class="btn" onclick="editTodo(${todo.id})" style="background: #17a2b8; margin-left: 5px;">✏️ Edit</button>
+                            <button class="btn btn-danger" onclick="deleteTodo(${todo.id})" style="margin-left: 5px;">🗑️ Delete</button>
                         </div>
                     </div>
                 </div>
@@ -417,9 +544,12 @@
         // Toggle completion status
         async function toggleComplete(id, completed) {
             try {
-                const endpoint = completed ? 'complete' : 'incomplete';
-                const response = await fetch(`${API_BASE}/todos/${id}/${endpoint}`, {
-                    method: 'POST'
+                const response = await fetch(`${API_BASE}/todos/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ completed: completed })
                 });
 
                 if (response.ok) {
@@ -481,11 +611,11 @@
         document.getElementById('add-todo-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const formData = new FormData(e.target);
             const todoData = {
                 title: document.getElementById('title').value.trim(),
                 description: document.getElementById('description').value.trim() || null,
-                priority: document.getElementById('priority').value
+                priority: document.getElementById('priority').value,
+                due_date: document.getElementById('due_date').value || null
             };
 
             if (!todoData.title) {
@@ -495,6 +625,167 @@
 
             await addTodo(todoData);
         });
+
+        // Edit form event listener
+        document.getElementById('edit-todo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await updateTodo();
+        });
+
+        // Modal functions
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function openDetailModal() {
+            document.getElementById('detailModal').style.display = 'block';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // View todo detail
+        async function viewTodoDetail(id) {
+            try {
+                const response = await fetch(`${API_BASE}/todos/${id}`);
+                if (response.ok) {
+                    const todo = await response.json();
+                    
+                    const detailContent = document.getElementById('todo-detail-content');
+                    detailContent.innerHTML = `
+                        <div class="form-group">
+                            <strong>Title:</strong> ${escapeHtml(todo.title)}
+                        </div>
+                        <div class="form-group">
+                            <strong>Description:</strong> ${todo.description ? escapeHtml(todo.description) : 'No description'}
+                        </div>
+                        <div class="form-group">
+                            <strong>Priority:</strong> <span class="priority priority-${todo.priority.toLowerCase()}">${getPriorityText(todo.priority)}</span>
+                        </div>
+                        <div class="form-group">
+                            <strong>Due Date:</strong> ${todo.due_date ? formatDateOnly(todo.due_date) : 'No due date'}
+                        </div>
+                        <div class="form-group">
+                            <strong>Status:</strong> ${todo.completed ? '✅ Completed' : '⏳ Pending'}
+                        </div>
+                        <div class="form-group">
+                            <strong>Created:</strong> ${formatDate(todo.created_at)}
+                        </div>
+                        <div class="form-group">
+                            <strong>Updated:</strong> ${formatDate(todo.updated_at)}
+                        </div>
+                    `;
+                    
+                    // Store the current todo for editing
+                    window.currentTodo = todo;
+                    openDetailModal();
+                } else {
+                    alert('Failed to load todo details');
+                }
+            } catch (error) {
+                console.error('Failed to view todo:', error);
+                alert('Failed to load todo details');
+            }
+        }
+
+        // Edit todo
+        async function editTodo(id) {
+            try {
+                const response = await fetch(`${API_BASE}/todos/${id}`);
+                if (response.ok) {
+                    const todo = await response.json();
+                    
+                    // Populate edit form
+                    document.getElementById('edit-todo-id').value = todo.id;
+                    document.getElementById('edit-title').value = todo.title;
+                    document.getElementById('edit-description').value = todo.description || '';
+                    document.getElementById('edit-priority').value = todo.priority;
+                    document.getElementById('edit-due-date').value = todo.due_date || '';
+                    document.getElementById('edit-completed').checked = todo.completed;
+                    
+                    openEditModal();
+                } else {
+                    alert('Failed to load todo for editing');
+                }
+            } catch (error) {
+                console.error('Failed to load todo for editing:', error);
+                alert('Failed to load todo for editing');
+            }
+        }
+
+        // Edit from detail modal
+        function editFromDetail() {
+            if (window.currentTodo) {
+                closeDetailModal();
+                editTodo(window.currentTodo.id);
+            }
+        }
+
+        // Update todo
+        async function updateTodo() {
+            try {
+                const todoId = document.getElementById('edit-todo-id').value;
+                const updateData = {
+                    title: document.getElementById('edit-title').value.trim(),
+                    description: document.getElementById('edit-description').value.trim() || null,
+                    priority: document.getElementById('edit-priority').value,
+                    due_date: document.getElementById('edit-due-date').value || null,
+                    completed: document.getElementById('edit-completed').checked
+                };
+
+                if (!updateData.title) {
+                    alert('Please enter a todo title');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/todos/${todoId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    closeEditModal();
+                    await loadTodos();
+                    await loadStats();
+                } else {
+                    alert('Failed to update todo');
+                }
+            } catch (error) {
+                console.error('Failed to update todo:', error);
+                alert('Failed to update todo');
+            }
+        }
+
+        // Utility function for date formatting
+        function formatDateOnly(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const detailModal = document.getElementById('detailModal');
+            
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            if (event.target === detailModal) {
+                closeDetailModal();
+            }
+        }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', () => {

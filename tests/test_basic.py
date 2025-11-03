@@ -7,14 +7,6 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_healthz_endpoint():
-    """测试简单健康检查"""
-    response = client.get("/healthz")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "ok"
-
-
 def test_create_todo():
     """测试创建待办事项"""
     todo_data = {"title": "测试待办事项", "description": "这是一个测试"}

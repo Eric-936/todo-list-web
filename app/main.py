@@ -99,22 +99,3 @@ app.include_router(todos.router, prefix="/api")
 async def web_interface(request: Request):
     """Serve the web interface."""
     return templates.TemplateResponse("index.html", {"request": request})
-
-
-# # API root endpoint
-# @app.get("/api", tags=["root"])
-# async def api_root():
-#     """API root endpoint."""
-#     return {
-#         "message": "Welcome to Todo List API",
-#         "version": "1.0.0",
-#         "docs": "/docs",
-#         "health": "/api/todos/health",
-#     }
-
-
-# # Simple health check endpoint at root level
-# @app.get("/healthz", tags=["health"])
-# async def healthz():
-#     """Simple health check endpoint."""
-#     return {"status": "ok", "service": "todo-list-api"}

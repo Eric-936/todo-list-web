@@ -3,9 +3,8 @@ Pydantic schemas for Todo API request/response validation.
 """
 
 from datetime import date, datetime
-from typing import Any, List, Optional
-
-from pydantic import BaseModel, Field, validator
+from typing import List, Optional
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.todo import Priority
 
@@ -24,14 +23,16 @@ class TodoBase(BaseModel):
     )
     due_date: Optional[date] = Field(None, description="Due date for the todo")
 
-    @validator("title")
+    @field_validator("title")
+    @classmethod
     def title_must_not_be_empty(cls, v):
         """Ensure title is not just whitespace."""
         if not v or not v.strip():
             raise ValueError("Title cannot be empty or just whitespace")
         return v.strip()
 
-    @validator("description")
+    @field_validator("description")
+    @classmethod
     def description_strip_whitespace(cls, v):
         """Strip whitespace from description if provided."""
         return v.strip() if v else v
@@ -58,14 +59,16 @@ class TodoUpdate(BaseModel):
     due_date: Optional[date] = Field(None, description="Due date for the todo")
     completed: Optional[bool] = Field(None, description="Whether the todo is completed")
 
-    @validator("title")
+    @field_validator("title")
+    @classmethod
     def title_must_not_be_empty(cls, v):
         """Ensure title is not just whitespace if provided."""
         if v is not None and (not v or not v.strip()):
             raise ValueError("Title cannot be empty or just whitespace")
         return v.strip() if v else v
 
-    @validator("description")
+    @field_validator("description")
+    @classmethod
     def description_strip_whitespace(cls, v):
         """Strip whitespace from description if provided."""
         return v.strip() if v else v
@@ -121,14 +124,3 @@ class TodoStatsResponse(BaseModel):
     total: int = Field(..., description="Total number of todos")
     completed: int = Field(..., description="Number of completed todos")
     pending: int = Field(..., description="Number of pending todos")
-    overdue: int = Field(..., description="Number of overdue todos")
-    by_priority: dict[str, int] = Field(..., description="Count by priority level")
-
-
-class HealthCheckResponse(BaseModel):
-    """Schema for health check response."""
-
-    status: str = Field(..., description="Overall health status")
-    timestamp: datetime = Field(..., description="Health check timestamp")
-    version: str = Field(..., description="Application version")
-    checks: dict[str, Any] = Field(..., description="Individual component checks")

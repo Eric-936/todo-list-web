@@ -2,7 +2,6 @@
 Business logic service for Todo operations.
 """
 
-from datetime import date
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
@@ -19,16 +18,12 @@ class TodoFilters:
         completed: Optional[bool] = None,
         priority: Optional[Priority] = None,
         search: Optional[str] = None,
-        due_date_from: Optional[date] = None,
-        due_date_to: Optional[date] = None,
-        limit: int = 10,
+        limit: int = 5,
         offset: int = 0,
     ):
         self.completed = completed
         self.priority = priority
         self.search = search
-        self.due_date_from = due_date_from
-        self.due_date_to = due_date_to
         self.limit = max(1, min(limit, 100))  # Limit between 1-100
         self.offset = max(0, offset)
 
@@ -137,7 +132,7 @@ class TodoService:
         # Get total count
         total = db.exec(count_query).one()
 
-        # Apply sorting and pagination
+        # Apply default sorting (newest first) and pagination
         query = query.order_by(Todo.created_at.desc())
         query = query.offset(filters.offset).limit(filters.limit)
 
@@ -161,7 +156,7 @@ class TodoService:
         if filters.priority is not None:
             conditions.append(Todo.priority == filters.priority)
 
-        # Search functionality (title and description)
+        # Filter by search keywords
         if filters.search:
             search_term = f"%{filters.search.lower()}%"
             search_condition = or_(
@@ -169,13 +164,6 @@ class TodoService:
                 func.lower(Todo.description).like(search_term),
             )
             conditions.append(search_condition)
-
-        # Filter by due date range
-        if filters.due_date_from:
-            conditions.append(Todo.due_date >= filters.due_date_from)
-
-        if filters.due_date_to:
-            conditions.append(Todo.due_date <= filters.due_date_to)
 
         return conditions
 
@@ -254,48 +242,6 @@ class TodoService:
             )
 
     @staticmethod
-    def mark_completed(db: Session, todo_id: int) -> Todo:
-        """
-        Mark todo as completed
-
-        Args:
-            db: Database session
-            todo_id: Todo ID
-
-        Returns:
-            Todo: Updated todo object
-        """
-        todo = TodoService.get_todo_by_id(db, todo_id)
-        todo.mark_completed()
-
-        db.add(todo)
-        db.commit()
-        db.refresh(todo)
-
-        return todo
-
-    @staticmethod
-    def mark_incomplete(db: Session, todo_id: int) -> Todo:
-        """
-        Mark todo as incomplete
-
-        Args:
-            db: Database session
-            todo_id: Todo ID
-
-        Returns:
-            Todo: Updated todo object
-        """
-        todo = TodoService.get_todo_by_id(db, todo_id)
-        todo.mark_incomplete()
-
-        db.add(todo)
-        db.commit()
-        db.refresh(todo)
-
-        return todo
-
-    @staticmethod
     def get_statistics(db: Session) -> Dict[str, Any]:
         """
         Get todo statistics
@@ -311,32 +257,14 @@ class TodoService:
 
         # Completed count
         completed = db.exec(
-            select(func.count(Todo.id)).where(Todo.completed == True)
+            select(func.count(Todo.id)).where(Todo.completed)
         ).one()
 
         # Pending count
         pending = total - completed
 
-        # Statistics by priority
-        priority_stats = {}
-        for priority in Priority:
-            count = db.exec(
-                select(func.count(Todo.id)).where(Todo.priority == priority)
-            ).one()
-            priority_stats[priority.value] = count
-
-        # Overdue tasks count (incomplete and past due)
-        today = date.today()
-        overdue = db.exec(
-            select(func.count(Todo.id)).where(
-                Todo.completed == False, Todo.due_date < today
-            )
-        ).one()
-
         return {
             "total": total,
             "completed": completed,
             "pending": pending,
-            "overdue": overdue,
-            "by_priority": priority_stats,
         }

@@ -222,36 +222,3 @@ class TestDeleteTodo:
             TodoService.delete_todo(test_db, 99999)
 
         assert exc_info.value.status_code == 404
-
-
-class TestMarkCompletion:
-    """Test TodoService mark completion methods."""
-
-    def test_mark_completed(self, test_db, created_todo):
-        """Test marking todo as completed."""
-        original_updated = created_todo.updated_at
-        time.sleep(0.01)  # Small delay to ensure timestamp difference
-
-        completed_todo = TodoService.mark_completed(test_db, created_todo.id)
-
-        assert completed_todo.completed is True
-        assert completed_todo.updated_at > original_updated
-
-    def test_mark_incomplete(self, test_db):
-        """Test marking todo as incomplete."""
-        # Create completed todo
-        todo = TodoService.create_todo(test_db, {"title": "Test", "completed": True})
-        original_updated = todo.updated_at
-        time.sleep(0.01)  # Small delay to ensure timestamp difference
-
-        incomplete_todo = TodoService.mark_incomplete(test_db, todo.id)
-
-        assert incomplete_todo.completed is False
-        assert incomplete_todo.updated_at > original_updated
-
-    def test_mark_nonexistent_todo(self, test_db):
-        """Test marking non-existent todo."""
-        with pytest.raises(HTTPException) as exc_info:
-            TodoService.mark_completed(test_db, 99999)
-
-        assert exc_info.value.status_code == 404
