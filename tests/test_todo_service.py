@@ -2,7 +2,6 @@
 Pytest tests for TodoService business logic.
 """
 
-import time
 from datetime import date, timedelta
 
 import pytest

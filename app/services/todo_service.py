@@ -3,10 +3,10 @@ Business logic service for Todo operations.
 """
 
 from typing import Any, Dict, List, Optional
-
 from fastapi import HTTPException, status
 from sqlmodel import Session, func, or_, select
 
+from app.config import settings
 from app.models.todo import Priority, Todo
 
 
@@ -18,13 +18,15 @@ class TodoFilters:
         completed: Optional[bool] = None,
         priority: Optional[Priority] = None,
         search: Optional[str] = None,
-        limit: int = 5,
+        limit: int = settings.default_page_size,
         offset: int = 0,
     ):
         self.completed = completed
         self.priority = priority
         self.search = search
-        self.limit = max(1, min(limit, 100))  # Limit between 1-100
+        self.limit = max(
+            1, min(limit, settings.max_page_size)
+        )  # Limit between 1-max_page_size
         self.offset = max(0, offset)
 
 
@@ -256,9 +258,7 @@ class TodoService:
         total = db.exec(select(func.count(Todo.id))).one()
 
         # Completed count
-        completed = db.exec(
-            select(func.count(Todo.id)).where(Todo.completed)
-        ).one()
+        completed = db.exec(select(func.count(Todo.id)).where(Todo.completed)).one()
 
         # Pending count
         pending = total - completed

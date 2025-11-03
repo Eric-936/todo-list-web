@@ -2,10 +2,10 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, Optional
-
 import redis.asyncio as redis
 
 from app.config import settings
+
 
 logger = logging.getLogger(__name__)
 

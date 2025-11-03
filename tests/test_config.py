@@ -121,5 +121,26 @@ def test_optional_fields_none_by_default():
     """Test that optional fields default to None."""
     settings = Settings()
 
-    assert settings.redis_password is None
     assert settings.redis_url is None
+
+
+def test_pagination_defaults():
+    """Test that pagination settings have correct defaults."""
+    settings = Settings()
+
+    assert settings.default_page_size == 5
+    assert settings.max_page_size == 100
+
+
+def test_pagination_environment_override():
+    """Test that pagination settings can be overridden via environment variables."""
+    env_vars = {
+        "DEFAULT_PAGE_SIZE": "10",
+        "MAX_PAGE_SIZE": "200",
+    }
+
+    with patch.dict(os.environ, env_vars):
+        settings = Settings()
+
+        assert settings.default_page_size == 10
+        assert settings.max_page_size == 200

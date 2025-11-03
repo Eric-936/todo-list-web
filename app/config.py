@@ -33,16 +33,9 @@ class Settings(BaseSettings):
     # Cache settings
     cache_ttl: int = Field(default=30, description="Cache TTL in seconds")
 
-    # # API settings
-    # api_key: Optional[str] = Field(default=None, env="API_KEY")
-    # cors_origins: list[str] = Field(
-    #     default=["http://localhost:3000", "http://localhost:8000"],
-    #     env="CORS_ORIGINS"
-    # )
-
-    # # Pagination defaults
-    # default_page_size: int = Field(default=20, env="DEFAULT_PAGE_SIZE")
-    # max_page_size: int = Field(default=100, env="MAX_PAGE_SIZE")
+    # Pagination defaults
+    default_page_size: int = Field(default=5, env="DEFAULT_PAGE_SIZE")
+    max_page_size: int = Field(default=100, env="MAX_PAGE_SIZE")
 
     @property
     def redis_connection_url(self) -> str:
@@ -54,11 +47,6 @@ class Settings(BaseSettings):
             return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
         else:
             return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
-
-    # @property
-    # def is_development(self) -> bool:
-    #     """Check if running in development mode."""
-    #     return self.debug or os.getenv("ENVIRONMENT", "development").lower() == "development"
 
 
 # Global settings instance

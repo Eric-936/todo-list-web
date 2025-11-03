@@ -6,10 +6,20 @@ __pycache__/
 # Virtual environments
 .venv
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # Others
 .python-version
 project_requirement.md
 .vscode/
 uv.lock
-。DS_Store
+.DS_Store
 Check_List.txt

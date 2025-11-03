@@ -7,7 +7,7 @@ business logic without requiring actual Redis server.
 
 import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from app.services.cache_service import CacheService
 
 
@@ -90,28 +90,29 @@ class TestCoreOperations:
             # Assert
             assert result is False
 
-    # @pytest.mark.asyncio
-    # async def test_delete_pattern_with_matches(self, cache_service, mock_redis_client):
-    #     """Test deleting keys by pattern with matches."""
-    #     # Arrange
-    #     matching_keys = ["todos:list:abc123", "todos:list:def456"]
+    @pytest.mark.asyncio
+    async def test_delete_pattern_with_matches(self, cache_service, mock_redis_client):
+        """Test deleting keys by pattern with matches."""
+        # Arrange
+        matching_keys = ["todos:list:abc123", "todos:list:def456"]
 
-    #     # Create async iterator
-    #     async def async_keys_iter():
-    #         for key in matching_keys:
-    #             yield key
+        # Create a proper async iterator mock
+        async def mock_scan_iter(**kwargs):
+            for key in matching_keys:
+                yield key
 
-    #     mock_redis_client.scan_iter.return_value = async_keys_iter()
-    #     mock_redis_client.delete.return_value = len(matching_keys)
+        mock_redis_client.scan_iter = mock_scan_iter
+        mock_redis_client.delete.return_value = len(matching_keys)
 
-    #     with patch.object(cache_service, '_get_redis_client', return_value=mock_redis_client):
-    #         # Act
-    #         result = await cache_service.delete_pattern("todos:list:*")
+        with patch.object(
+            cache_service, "_get_redis_client", return_value=mock_redis_client
+        ):
+            # Act
+            result = await cache_service.delete_pattern("todos:list:*")
 
-    #         # Assert
-    #         assert result == 2
-    #         mock_redis_client.scan_iter.assert_called_once_with(match="todos:list:*")
-    #         mock_redis_client.delete.assert_called_once_with(*matching_keys)
+            # Assert
+            assert result == 2
+            mock_redis_client.delete.assert_called_once_with(*matching_keys)
 
 
 class TestTodoSpecificMethods:

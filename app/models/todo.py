@@ -4,8 +4,8 @@ SQLModel database model for Todo items.
 
 from datetime import date, datetime, timedelta, timezone
 from enum import Enum
-
 from sqlmodel import Field, SQLModel
+
 
 # EST timezone (UTC-5)
 EST = timezone(timedelta(hours=-5))
@@ -83,16 +83,6 @@ class Todo(SQLModel, table=True):
         """String representation for debugging."""
         status = "✅" if self.completed else "⏳"
         return f"<Todo {self.id}: {status} [{self.priority}] {self.title}>"
-
-    def mark_completed(self) -> None:
-        """Mark todo as completed and update timestamp."""
-        self.completed = True
-        self.updated_at = est_now()
-
-    def mark_incomplete(self) -> None:
-        """Mark todo as incomplete and update timestamp."""
-        self.completed = False
-        self.updated_at = est_now()
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp."""

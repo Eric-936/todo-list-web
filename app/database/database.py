@@ -3,10 +3,10 @@ Database configuration and session management using SQLModel.
 """
 
 from typing import Generator
-
 from sqlmodel import Session, SQLModel, create_engine, text
 
 from app.config import settings
+
 
 # Create SQLite engine with proper configuration
 engine = create_engine(

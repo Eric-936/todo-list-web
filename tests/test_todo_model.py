@@ -98,7 +98,8 @@ def test_mark_completed():
     original_updated = todo.updated_at
 
     time.sleep(0.01)  # Small delay to ensure timestamp changes
-    todo.mark_completed()
+    todo.completed = True
+    todo.update_timestamp()
 
     assert todo.completed is True
     assert todo.updated_at > original_updated
@@ -111,7 +112,8 @@ def test_mark_incomplete():
     original_updated = todo.updated_at
 
     time.sleep(0.01)
-    todo.mark_incomplete()
+    todo.completed = False
+    todo.update_timestamp()
 
     assert todo.completed is False
     assert todo.updated_at > original_updated
@@ -128,7 +130,8 @@ def test_repr_method():
     assert "⏳" in repr_str  # incomplete emoji
 
     # Completed todo
-    todo.mark_completed()
+    todo.completed = True
+    todo.update_timestamp()
     repr_str = repr(todo)
     assert "✅" in repr_str  # completed emoji
 
@@ -202,7 +205,8 @@ def test_update_todo_in_database(setup_database):
 
         # Update the todo
         time.sleep(0.01)
-        todo.mark_completed()
+        todo.completed = True
+        todo.update_timestamp()
         session.add(todo)
         session.commit()
 
@@ -229,7 +233,7 @@ def test_query_todos_by_criteria(setup_database):
         session.commit()
 
         # Query by completion status
-        completed = session.exec(select(Todo).where(Todo.completed == True)).all()
+        completed = session.exec(select(Todo).where(Todo.completed)).all()
         assert len(completed) >= 1
         assert any(t.title == "Completed Task" for t in completed)
 

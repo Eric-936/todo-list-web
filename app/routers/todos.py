@@ -7,6 +7,7 @@ from typing import Generator, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlmodel import Session
 
+from app.config import settings
 from app.database.database import engine
 from app.models.todo import Priority
 from app.services.cache_service import CacheService, cache_service
@@ -58,7 +59,12 @@ async def get_todos(
     ),
     # Pagination parameters
     page: int = Query(1, ge=1, description="Page number, starting from 1"),
-    page_size: int = Query(5, ge=1, le=100, description="Items per page, 1-100"),
+    page_size: int = Query(
+        settings.default_page_size,
+        ge=1,
+        le=settings.max_page_size,
+        description=f"Items per page, 1-{settings.max_page_size}",
+    ),
     # Service dependencies
     db: Session = Depends(get_db),
     cache: CacheService = Depends(get_cache),
