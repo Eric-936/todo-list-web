@@ -1,5 +1,7 @@
 # To-Do List Mini Web App (FastAPI + SQLite + Redis)
 
+---
+
 A small API-first to-do list web app with a minimal UI, built on FastAPI, persisting to SQLite, and using Redis for read caching. The project includes comprehensive unit and integration tests.
 
 ## Features
